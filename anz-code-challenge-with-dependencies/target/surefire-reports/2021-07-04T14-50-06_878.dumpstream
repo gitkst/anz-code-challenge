@@ -1,0 +1,4 @@
+# Created at 2021-07-04T14:50:08.849
+Boot Manifest-JAR contains absolute paths in classpath 'E:\workspace4.4\anz-code-challenge-with-dependencies\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+
