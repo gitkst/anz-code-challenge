@@ -3,10 +3,18 @@ package com.anz.validator;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.json.simple.JSONObject;
 
-public class ColumnValidator {
+import com.anz.io.InputFileReaderANZ;
+import com.anz.io.OutputWriterANZ;
+import com.anz.util.CodeChallengeUtil;
+import com.anz.util.FileConstants;
+import com.anz.validator.ifc.ValidatorANZIfc;
+
+public class ColumnValidator implements ValidatorANZIfc {
 	
 	public boolean[] doesSchemaMatchsCSV( Dataset<Row> dataRDD, Dataset<Row> schemaFileRDD) {
 		//Print Schema
@@ -19,26 +27,26 @@ public class ColumnValidator {
 		return isSchemaDiff(schemaFileStruct, dataFileStruct);
 	}
 	
-	private boolean[] isSchemaDiff (StructType s1, StructType s2) {
+	private boolean[] isSchemaDiff (StructType schemaFileStruct, StructType dataFileStruct) {
 		
-		StructField[] sf1  = s1.fields();
-		StructField[] sf2  = s2.fields();
+		StructField[] schemaFileStructArray  = schemaFileStruct.fields();
+		StructField[] dataFileStructArray  = dataFileStruct.fields();
 		
+		System.out.println("schemaFileStructArray ==>"+ schemaFileStructArray.length + "dataFileStructArray==>" + dataFileStructArray.length);
 		
-		
-		System.out.println("sf1 ==>"+ sf1.length + "sf2==>" + sf2.length);
 		boolean[] schemaMatch = {true, false};
 		
-		if(sf1.length < sf2.length ) {
-			//additonal fields is set is second array
-			schemaMatch[1] = true;
+		
+		if(schemaFileStructArray.length < dataFileStructArray.length ) {
 			
+			//additonal fields -> Hence this is set to true
+			schemaMatch[1] = true;
 			
 		}
 		
-		for(int i=0;  i < sf1.length ; i++) {
+		for(int i=0;  i < schemaFileStructArray.length ; i++) {
 			
-			if(! sf1[i].equals(sf2[i])) {
+			if(! schemaFileStructArray[i].equals(dataFileStructArray[i])) {
 				schemaMatch[0] = false;
 			}
 		}
@@ -63,9 +71,85 @@ val schemaDiff = (s1 :StructType, s2 :StructType) => {
 
       val diffKeys = s1Keys ++ s2Keys -- commonKeys
 
-      (s1 ++ s2).filter(sf => diffKeys.contains(sf.toString)).toList
+      (s1 ++ s2).filter(sf => diffKeys.contains(sf.toString)).toList.
 }
 
 	*/
 
+	private boolean isSchemaSame (StructType schemaFileStruct, StructType dataFileStruct) {
+		
+		StructField[] schemaFileStructArray  = schemaFileStruct.fields();
+		StructField[] dataFileStructArray  = dataFileStruct.fields();
+		
+			
+		for(int i=0;  i < schemaFileStructArray.length ; i++) {
+			
+			boolean nameDiff =  schemaFileStructArray[i].name().equals(dataFileStructArray[i].name());
+			boolean typeDiff =  schemaFileStructArray[i].dataType().equals(dataFileStructArray[i].dataType());
+			boolean nullable =  (schemaFileStructArray[i].nullable() == dataFileStructArray[i].nullable());
+			
+			if( !nameDiff &&  !nullable ) {
+				return false;
+				
+			}
+			
+		}
+							
+		return true;
+		
+	}
+	
+	private int getSchemaFieldLengthDiff(StructType dataFileStructType, StructType schemaFileStructType) {
+		// TODO Auto-generated method stub
+		return dataFileStructType.size() - schemaFileStructType.size();
+	}
+
+	
+	private int performValidation(Dataset<Row> dataRDD, JSONObject schemaFileJSON) {
+		
+		System.out.println("doesSchemaMatchsCSV == Started");
+		StructType schemaFileStructType = CodeChallengeUtil.convertJSONtoStruct(schemaFileJSON);
+		
+		int fieldlengthDifference =  getSchemaFieldLengthDiff(dataRDD.schema(), schemaFileStructType);
+		
+		String outputFileName = null;
+		
+		if( fieldlengthDifference > 0 ) {
+			
+			outputFileName = FileConstants.FILE_NAME_ADDITIONAL_COLUMNS;
+			OutputWriterANZ.writeExmptyFile(outputFileName);
+			return 4;
+			
+		} else if (fieldlengthDifference < 0) {
+		
+			outputFileName = FileConstants.FILE_NAME_MISSING_COLUMNS;
+			OutputWriterANZ.writeExmptyFile(outputFileName);
+			return 4;
+			
+		} else {
+		
+			boolean isSchemaSame = isSchemaSame(dataRDD.schema(), schemaFileStructType);
+			
+			if( !isSchemaSame ) {
+				outputFileName = FileConstants.FILE_NAME_COLUMNS_NOT_MATCH;
+				OutputWriterANZ.writeExmptyFile(outputFileName);
+				return 5;
+			}
+		}
+				
+		return 0;
+    	
+	}
+
+	
+	@Override
+	public int validate( long tagCount, JSONObject schemaFileJSON, String data, String tagFileName,  SparkSession spark) {
+		
+		// TODO Auto-generated method stub
+		System.out.println(getClass().getName());
+		
+		Dataset<Row> dataRDD = InputFileReaderANZ.csvReadSQL(data, spark);
+		
+		return performValidation(dataRDD, schemaFileJSON);
+	}
 }

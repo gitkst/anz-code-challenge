@@ -19,6 +19,21 @@ public class OutputWriterANZ {
 		
 	}
 	
+	public static void writeRDD(Dataset<Row> outputRDD ) {
+		// TODO Auto-generated method stub
+		
+		//System.out.println("Write File " + outputFileName);
+		
+		outputRDD.printSchema();
+		outputRDD.write()
+				.option("header", "true")
+				.option("encoding", "UTF-8")
+				.mode(SaveMode.Overwrite)
+				.csv(FileConstants.outputPath+"//section//abc.csv");
+		//save(FileConstants.outputPath);
+		
+	}
+	
 	public static void writeExmptyFile( String outputFileName) {
 		// TODO Auto-generated method stub
 		

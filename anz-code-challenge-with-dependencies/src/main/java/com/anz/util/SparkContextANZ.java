@@ -7,6 +7,11 @@ public class SparkContextANZ {
 
 	private SparkSession spark = null;
 	
+	
+	public SparkContextANZ() {
+		
+	}
+	
 	public SparkSession sparkSession() {
 		
 		if(spark == null) {
@@ -15,6 +20,10 @@ public class SparkContextANZ {
 		
 		return spark;
 		
+	}
+	
+	public void closeSession() {
+		if(this.spark!= null ) spark.close(); 
 	}
 		
 }

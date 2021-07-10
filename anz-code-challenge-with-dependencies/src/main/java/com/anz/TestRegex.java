@@ -4,8 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.types.StructType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,6 +16,7 @@ import org.json.simple.parser.ParseException;
 import com.anz.io.InputFileReaderANZ;
 import com.anz.io.OutputWriterANZ;
 import com.anz.util.CodeChallengeUtil;
+import com.anz.validator.ifc.ValidatorANZIfc;
 
 
 public class TestRegex {
@@ -32,9 +35,16 @@ public class TestRegex {
 	    
 		System.out.println(args[0] + "," + args[1]);
 		
+		String schema = params.get("schema");
 		//String tags = OutputWriterANZ.writeRDD();
 
 		//System.out.println(tags);
+		
+		//List<ValidatorANZIfc> validatonChain=    CodeChallengeUtil.getValidatorChain("C:\\Users\\kaush\\Documents\\git\\repository\\anz-code-challenge-with-dependencies\\src\\main\\resources\\fileValidation.properties");
+		JSONObject schemaFileJSON = InputFileReaderANZ.getSchemaFileJSON(schema);
+		StructType schemaFileRDD = CodeChallengeUtil.convertJSONtoStruct(schemaFileJSON);
+		
+		//CodeChallengeUtil.invokeValidation(validatonChain);
 	}
 	
 		

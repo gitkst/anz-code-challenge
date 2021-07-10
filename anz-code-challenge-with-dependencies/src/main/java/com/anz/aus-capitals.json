@@ -9,12 +9,7 @@
             "name": "Capital",
             "type": "STRING",
             "mandatory": true
-        },
-        {
-            "name": "State/Territory",
-            "type": "STRING",
-            "mandatory": true
-        },
+        },        
         {
             "name": "City Population",
             "type": "INTEGER",
