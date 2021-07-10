@@ -149,12 +149,25 @@
             </plugins>
         </pluginManagement>
         <plugins>
+        <plugin>
+		    <!-- Build an executable JAR -->
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-jar-plugin</artifactId>
+		    <version>2.4</version>
+		    <configuration>
+		        <archive>
+		            <manifest>
+		                <mainClass>com.anz.Driver</mainClass>
+		            </manifest>
+		        </archive>
+		    </configuration>
+		</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <includes>
-                        <include>**/Test*.java</include>
+                        <include>**/Test1*.java</include>
                     </includes>
                 </configuration>
             </plugin>
